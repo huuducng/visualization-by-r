@@ -2,7 +2,7 @@
 #library("pacman") #Not required
 
 pacman::p_load(here, rio,
-               tidyverse, lubridate,
+               tidyverse, lubridate, reshape2, scales,
                janitor,
                cowplot)
 
