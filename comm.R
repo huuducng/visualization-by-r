@@ -25,7 +25,7 @@ df_to_plot <- dfM[dfM$year_month >= max(dfM$year_month) - months(12),]
 
 df_melted <- df_to_plot %>%
   select(year_month, all_items, food, non_food_agriculturals, metals, brent) %>% 
-  reshape::melt(id.var="year_month")
+  reshape2::melt(id.var="year_month")
 
 theme_set(theme_minimal())
 
