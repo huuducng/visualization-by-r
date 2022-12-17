@@ -6,8 +6,9 @@ pacman::p_load(here, rio,
                janitor,
                cowplot)
 
-# library(scales)
-df <- import("data.xlsx", which = "COMM") %>% 
+data_file <- here(Sys.getenv("USERPROFILE"), "data", "w_cmo-economist.xlsx")
+
+df <- import(data_file) %>%
   janitor::clean_names() #Clean columns name
 
 # create date column
@@ -15,23 +16,24 @@ df$date <- make_date(year = df$year, month = df$month, day = df$day)
 
 # aggregate to monthly data
 df$year_month <- floor_date(df$date, "month")
-dfM <- df %>%
+df_m <- df %>%
   select(-c(year, month, day, date)) %>% 
   group_by(year_month) %>% 
   summarise(across(.cols = everything(), .fns = mean)) %>% 
   as.data.frame()
 
-df_to_plot <- dfM[dfM$year_month >= max(dfM$year_month) - months(12),]
+df_to_plot <- df_m[df_m$year_month >= max(df_m$year_month) - months(12),]
 
 df_melted <- df_to_plot %>%
-  select(year_month, all_items, food, non_food_agriculturals, metals, brent) %>% 
+  select(year_month, all_items, food,
+  non_food_agriculturals, metals, brent) %>%
   reshape2::melt(id.var="year_month")
 
 theme_set(theme_minimal())
 
-plot1 <- ggplot(df_melted[df_melted$variable != "brent",],
-                aes(x=year_month, y=value, col=variable)) +
-  geom_line() + 
+plot1 <- ggplot(df_melted[df_melted$variable != "brent", ],
+                aes(x=year_month, y=value, col=variable, shape=variable)) +
+  geom_path() +
   geom_point() +
   scale_x_date(labels = date_format("%m/%Y"), expand=c(0.01,0.01)) +
   theme(axis.title = element_blank(),
@@ -49,6 +51,7 @@ plot1 <- ggplot(df_melted[df_melted$variable != "brent",],
                               "Thực phẩm",
                               "Nông sản ngoài thực phẩm",
                               "Kim loại")) +
+  scale_shape(labels = c("Tổng", "Thực phẩm", "Nông sản ngoài thực phẩm", "Kim loại")) +
   labs(title = str_c("Giá hàng hoá thế giới ",
                      strftime(min(df_to_plot$year_month), "%m/%Y"),
                      " - ", strftime(max(df_to_plot$year_month), "%m/%Y"), "*"),
