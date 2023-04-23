@@ -1,12 +1,17 @@
-# install.packages("pacman") #Install a package for managing other lib
-#library("pacman") #Not required
+if (!require(pacman)) {
+  install.packages("pacman")
+}
 
 pacman::p_load(here, rio,
                tidyverse, lubridate, reshape2, scales,
                janitor,
-               cowplot)
+               cowplot,
+               extrafont)
 
-data_file <- here(Sys.getenv("USERPROFILE"), "data", "w_cmo-economist.xlsx")
+loadfonts(device = "win")
+
+data_file <- here(Sys.getenv("USERPROFILE"),
+                  "CloudDrive/My Drive/data", "w_cmo-economist.xlsx")
 
 df <- import(data_file) %>%
   janitor::clean_names() #Clean columns name
@@ -32,11 +37,12 @@ df_melted <- df_to_plot %>%
 theme_set(theme_minimal())
 
 plot1 <- ggplot(df_melted[df_melted$variable != "brent", ],
-                aes(x=year_month, y=value, col=variable, shape=variable)) +
-  geom_path() +
+                aes(x=year_month, y=value, col = variable, shape=variable)) +
+  geom_line() +
   geom_point() +
-  scale_x_date(labels = date_format("%m/%Y"), expand=c(0.01,0.01)) +
-  theme(axis.title = element_blank(),
+  scale_x_date(labels = date_format("%m/%Y"), expand=c(0.05,0.05)) +
+  theme(text=element_text(size=14,  family="serif"),
+        axis.title = element_blank(),
         plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0),
@@ -60,22 +66,25 @@ plot1 <- ggplot(df_melted[df_melted$variable != "brent", ],
                        "\n* Số liệu đến ngày ",
                        strftime(max(df$date), "%d/%m")))
 
-ggsave(filename = "global_comm.png",
+ggsave(path = "img",
+       filename = "global_comm_economist.png",
        plot = plot1,
        width = 17, height = 13,
        units = "cm", dpi = 300,
        bg = "white")
 
 plot2 <- ggplot(df_melted[df_melted$variable == "brent",],
-                aes(x=year_month, y=value, fill=variable)) +
-  geom_bar(stat = "identity") +
-  scale_x_date(labels = date_format("%m/%Y"), expand=c(0.01,0.01)) +
-  theme(axis.title = element_blank(),
+                aes(x=year_month, y=value, col = variable)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date(labels = date_format("%m/%Y"), expand=c(0.05,0.05)) +
+  theme(text=element_text(size=14,  family="serif"),
+        axis.title = element_blank(),
         plot.title = element_text(face = "bold", hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0),
         legend.position = "none") +
-  scale_fill_brewer(palette="Set1",
+  scale_color_brewer(palette="Set1",
                     labels=c()) +
   labs(title = str_c("Giá dầu Brent ",
                      strftime(min(df_to_plot$year_month), "%m/%Y"),
@@ -85,7 +94,8 @@ plot2 <- ggplot(df_melted[df_melted$variable == "brent",],
                        "\n* Số liệu đến ngày ",
                        strftime(max(df$date), "%d/%m")))
 
-ggsave(filename = "global_brent.png",
+ggsave(path = "img",
+       filename = "global_brent_economist.png",
        plot = plot2,
        width = 17, height = 13,
        units = "cm", dpi = 300,
